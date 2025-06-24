@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "856393800795",
+    "firebase_url": "https://ramstech-esp32-default-rtdb.firebaseio.com",
+    "project_id": "ramstech-esp32",
+    "storage_bucket": "ramstech-esp32.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:856393800795:android:700cccd376ab5cdbe4737e",
+        "android_client_info": {
+          "package_name": "com.example.news_bok"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBu1tZA7ZBaR8n5ApHW97Swq1q8tVJNbfQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:856393800795:android:5e8c3382a7f923eae4737e",
+        "android_client_info": {
+          "package_name": "com.example.ramstech"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBu1tZA7ZBaR8n5ApHW97Swq1q8tVJNbfQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
