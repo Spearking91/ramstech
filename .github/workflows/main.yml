@@ -28,3 +28,6 @@ jobs:
           artifacts: "build/app/outputs/apk/release/*"
           tag: v0.0.1
           token: ${{ secrets.TOKEN }}
+          commit: ${{ github.sha }}
+          owner: Spearking91
+          repo: ramstech
