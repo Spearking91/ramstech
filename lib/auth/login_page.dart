@@ -18,7 +18,7 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
-  final bool _isLoadingGoogle = false;
+  bool _disabled = false;
   bool _obscureText = true;
   bool _rememberMe = false;
 
@@ -171,14 +171,10 @@ class _LoginPageState extends State<LoginPage> {
                             style: TextStyle(color: Colors.grey[600]),
                           ),
                           const SizedBox(height: 10),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              GoogleAuthButton(
-                                onPressed: _googleSignIn,
-                                isLoading: _isLoading,
-                              )
-                            ],
+                          GoogleAuthButton(
+                            onPressed: _googleSignIn,
+                            isLoading: _isLoading,
+                            disabled: _disabled,
                           ),
                         ],
                       ),
@@ -236,9 +232,11 @@ class _LoginPageState extends State<LoginPage> {
         ),
       );
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -255,9 +253,11 @@ class _LoginPageState extends State<LoginPage> {
         ),
       );
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 }
