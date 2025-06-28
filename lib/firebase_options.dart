@@ -42,18 +42,18 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyCPi9D0LHEYxo-on7fglVrECTMXQezng5w',
-    appId: '1:856393800795:web:8b2dba6850de4e07e4737e',
+    appId: '1:856393800795:web:2d186b9cf3c9986ae4737e',
     messagingSenderId: '856393800795',
     projectId: 'ramstech-esp32',
     authDomain: 'ramstech-esp32.firebaseapp.com',
     databaseURL: 'https://ramstech-esp32-default-rtdb.firebaseio.com',
     storageBucket: 'ramstech-esp32.firebasestorage.app',
-    measurementId: 'G-P4BSQCYMNL',
+    measurementId: 'G-HQB220705G',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyBu1tZA7ZBaR8n5ApHW97Swq1q8tVJNbfQ',
-    appId: '1:856393800795:android:5e8c3382a7f923eae4737e',
+    appId: '1:856393800795:android:021627829c70e065e4737e',
     messagingSenderId: '856393800795',
     projectId: 'ramstech-esp32',
     databaseURL: 'https://ramstech-esp32-default-rtdb.firebaseio.com',
@@ -62,32 +62,37 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyAtSHfgD4JquDD7Cenyyfsw3bjZQWxVT5I',
-    appId: '1:856393800795:ios:e889da0c0b8c5507e4737e',
+    appId: '1:856393800795:ios:0e91a9d772434bb6e4737e',
     messagingSenderId: '856393800795',
     projectId: 'ramstech-esp32',
     databaseURL: 'https://ramstech-esp32-default-rtdb.firebaseio.com',
     storageBucket: 'ramstech-esp32.firebasestorage.app',
+    androidClientId: '856393800795-fnji7b7f4srnqevmdjot400cqtd250q2.apps.googleusercontent.com',
+    iosClientId: '856393800795-dd2t0udeise812rncg797huir9omkc3u.apps.googleusercontent.com',
     iosBundleId: 'com.example.ramstech',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyAtSHfgD4JquDD7Cenyyfsw3bjZQWxVT5I',
-    appId: '1:856393800795:ios:e889da0c0b8c5507e4737e',
+    appId: '1:856393800795:ios:0e91a9d772434bb6e4737e',
     messagingSenderId: '856393800795',
     projectId: 'ramstech-esp32',
     databaseURL: 'https://ramstech-esp32-default-rtdb.firebaseio.com',
     storageBucket: 'ramstech-esp32.firebasestorage.app',
+    androidClientId: '856393800795-fnji7b7f4srnqevmdjot400cqtd250q2.apps.googleusercontent.com',
+    iosClientId: '856393800795-dd2t0udeise812rncg797huir9omkc3u.apps.googleusercontent.com',
     iosBundleId: 'com.example.ramstech',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
     apiKey: 'AIzaSyCPi9D0LHEYxo-on7fglVrECTMXQezng5w',
-    appId: '1:856393800795:web:c1c5900170001fb1e4737e',
+    appId: '1:856393800795:web:a454d5f5a3598dcbe4737e',
     messagingSenderId: '856393800795',
     projectId: 'ramstech-esp32',
     authDomain: 'ramstech-esp32.firebaseapp.com',
     databaseURL: 'https://ramstech-esp32-default-rtdb.firebaseio.com',
     storageBucket: 'ramstech-esp32.firebasestorage.app',
-    measurementId: 'G-PMCXPVC5FK',
+    measurementId: 'G-2Q2PM7YQEM',
   );
+
 }

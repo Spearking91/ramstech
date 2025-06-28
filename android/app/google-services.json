@@ -8,12 +8,25 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:856393800795:android:700cccd376ab5cdbe4737e",
+        "mobilesdk_app_id": "1:856393800795:android:6e9bd9a9823dedf7e4737e",
         "android_client_info": {
-          "package_name": "com.example.news_bok"
+          "package_name": "com.example.air"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "856393800795-oanoj930571lsdrgh657k1ahdrrb7fl1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.air",
+            "certificate_hash": "5cfa444f5c33d668a3d24161343de4b190b10982"
+          }
+        },
+        {
+          "client_id": "856393800795-i065mdmtebl49ch34b5oiid3asthk8vb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBu1tZA7ZBaR8n5ApHW97Swq1q8tVJNbfQ"
@@ -21,18 +34,35 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "856393800795-i065mdmtebl49ch34b5oiid3asthk8vb.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "856393800795-4uedq6ll3v7ligfcao5p4pv12drhumud.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.air"
+              }
+            }
+          ]
         }
       }
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:856393800795:android:5e8c3382a7f923eae4737e",
+        "mobilesdk_app_id": "1:856393800795:android:700cccd376ab5cdbe4737e",
         "android_client_info": {
-          "package_name": "com.example.ramstech"
+          "package_name": "com.example.news_bok"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "856393800795-i065mdmtebl49ch34b5oiid3asthk8vb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBu1tZA7ZBaR8n5ApHW97Swq1q8tVJNbfQ"
@@ -40,7 +70,63 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "856393800795-i065mdmtebl49ch34b5oiid3asthk8vb.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "856393800795-4uedq6ll3v7ligfcao5p4pv12drhumud.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.air"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:856393800795:android:021627829c70e065e4737e",
+        "android_client_info": {
+          "package_name": "com.example.ramstech"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "856393800795-fnji7b7f4srnqevmdjot400cqtd250q2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.ramstech",
+            "certificate_hash": "5cfa444f5c33d668a3d24161343de4b190b10982"
+          }
+        },
+        {
+          "client_id": "856393800795-i065mdmtebl49ch34b5oiid3asthk8vb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBu1tZA7ZBaR8n5ApHW97Swq1q8tVJNbfQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "856393800795-i065mdmtebl49ch34b5oiid3asthk8vb.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "856393800795-4uedq6ll3v7ligfcao5p4pv12drhumud.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.air"
+              }
+            }
+          ]
         }
       }
     }
