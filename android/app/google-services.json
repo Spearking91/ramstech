@@ -95,6 +95,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "856393800795-ancmgrnv5g7foqlp1ujgpbnuh4to8i7a.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.ramstech",
+            "certificate_hash": "130a3a3e5df9375104584d82c944b862f5d6f0df"
+          }
+        },
+        {
           "client_id": "856393800795-fnji7b7f4srnqevmdjot400cqtd250q2.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
