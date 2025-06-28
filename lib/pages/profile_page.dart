@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ramstech/auth/login_page.dart';
 import 'package:ramstech/data/notifiers.dart';
+import 'package:ramstech/pages/update_page.dart';
 import 'package:ramstech/services/firebase_auth_service.dart';
 import 'package:ramstech/widgets/avatar.dart';
 
@@ -77,15 +78,15 @@ class _ProfilePageState extends State<ProfilePage>
               ),
 
               // Profile Stats Card
-              SliverToBoxAdapter(
-                child: Transform.translate(
-                  offset: Offset(0, _slideAnimation.value * 1.5),
-                  child: Opacity(
-                    opacity: _fadeAnimation.value,
-                    child: _buildStatsCard(isDark),
-                  ),
-                ),
-              ),
+              // SliverToBoxAdapter(
+              //   child: Transform.translate(
+              //     offset: Offset(0, _slideAnimation.value * 1.5),
+              //     child: Opacity(
+              //       opacity: _fadeAnimation.value,
+              //       child: _buildStatsCard(isDark),
+              //     ),
+              //   ),
+              // ),
 
               // Account Settings
               SliverToBoxAdapter(
@@ -346,6 +347,12 @@ class _ProfilePageState extends State<ProfilePage>
             'subtitle': 'Manage your notifications',
             'icon': Icons.notifications,
             'action': () => _showNotificationsDialog(context),
+          },
+          {
+            'title': 'Updates',
+            'subtitle': 'Check for updates',
+            'icon': Icons.system_update,
+            'action': () => _directToUpdates(context),
           },
         ],
       },
@@ -621,6 +628,14 @@ class _ProfilePageState extends State<ProfilePage>
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Notifications settings coming soon!')),
     );
+  }
+
+  void _directToUpdates(BuildContext context) {
+    Navigator.push(context, MaterialPageRoute(
+      builder: (context) {
+        return const UpdatePage();
+      },
+    ));
   }
 
   void _changePassword(BuildContext context) {

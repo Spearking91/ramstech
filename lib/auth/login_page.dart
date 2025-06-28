@@ -18,7 +18,7 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
-  bool _disabled = false;
+  final bool _disabled = false;
   bool _obscureText = true;
   bool _rememberMe = false;
 
@@ -211,7 +211,9 @@ class _LoginPageState extends State<LoginPage> {
 
   _login() async {
     if (!_formKey.currentState!.validate()) return;
-
+    setState(() {
+      _isLoading = true;
+    });
     try {
       await FirebaseAuthMethod.signIn(
         email: _emailController.text.trim(),

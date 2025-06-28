@@ -266,9 +266,9 @@ class _HomePageState extends State<HomePage>
         children: [
           _buildMetricsGrid(data),
           const SizedBox(height: 32),
-          _buildHistoricalSection(),
-          const SizedBox(height: 32),
           _buildRecommendationsCard(aqi: data?.aqi ?? 0),
+          const SizedBox(height: 32),
+          _buildHistoricalSection(),
           const SizedBox(height: 20),
         ],
       ),
