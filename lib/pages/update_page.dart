@@ -204,6 +204,9 @@ class _UpdatePageState extends State<UpdatePage> with TickerProviderStateMixin {
 
       if (latest != null && latest != current) {
         _showUpdateDialog(context, latest, owner, repo);
+      } else if (latest == current) {
+        _showSnackBar(
+            context, 'This is the latest Version Available', Colors.green);
       } else {
         _showSnackBar(context, 'You have the latest version! 🎉', Colors.green);
       }
