@@ -35,6 +35,13 @@ jobs:
           ANDROID_KEYSTORE_ALIAS: ${{ secrets.ANDROID_KEYSTORE_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
+      - name: Set version from tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG_VERSION="${GITHUB_REF#refs/tags/}"
+          # Update pubspec.yaml version (assumes tag is like 1.0.4 or 1.0.4+5)
+          sed -i "s/^version: .*/version: $TAG_VERSION/" pubspec.yaml
+
       - name: Push to Releases
         uses: ncipollo/release-action@v1
         with:
