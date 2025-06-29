@@ -51,6 +51,7 @@ jobs:
       - name: Upload APK as Artifact
         uses: actions/upload-artifact@v4
         with:
+<<<<<<< HEAD
           name: app-release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
 
@@ -79,3 +80,9 @@ jobs:
           asset_path: build/app/outputs/flutter-apk/app-release.apk
           asset_name: app-release-${{ github.run_number }}.apk
           asset_content_type: application/vnd.android.package-archive
+=======
+          artifacts: "build/app/outputs/apk/release/*"
+          tag: v1.0.1
+          
+          token: ${{ secrets.TOKEN }}
+>>>>>>> 9e61c540592df30b1d8492ce818ef24fb374cb83
