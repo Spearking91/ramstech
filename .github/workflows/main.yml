@@ -1,30 +1,81 @@
+name: Android Release Build
+
 on:
   push:
     branches:
-      - main
-
-name: Build My Apps
+      - main # Trigger on pushes to the main branch
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
 
 jobs:
-  build:
-    name: Build and Release new apk
-    runs-on: ubuntu-latest
+  build_android:
+    runs-on: ubuntu-latest # Use an Ubuntu runner
+
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-java@v2
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '17'
+          java-version: '17' # Android builds often require Java 17
 
-      - uses: subosito/flutter-action@v2
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-      - run: flutter pub get
-      - run: flutter build apk --release --split-per-abi
+          # Set Flutter version if you need a specific one, e.g., '3.x.x'
+          # flutter-version: '3.19.0' 
 
-      - name: Push to Releases
-        uses: ncipollo/release-action@v1
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Decode Keystore File
+        env:
+          ENCODED_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          # Decode the base64 string back into a .jks file
+          echo "$ENCODED_KEYSTORE" | base64 --decode > android/app/release-key.jks
+          # Set environment variable for Gradle to find the keystore
+          echo "ANDROID_KEYSTORE_PATH=$(pwd)/android/app/release-key.jks" >> $GITHUB_ENV
+
+      - name: Build Android Release APK
+        run: flutter build apk --release
+        env:
+          # Pass signing credentials as environment variables to Gradle
+          # These names match what you set in build.gradle
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEYSTORE_ALIAS: ${{ secrets.ANDROID_KEYSTORE_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Upload APK as Artifact
+        uses: actions/upload-artifact@v4
         with:
-          artifacts: "build/app/outputs/apk/release/*"
-          tag: v1.0.0
-          token: ${{ secrets.TOKEN }}
+          name: app-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Create GitHub Release
+        # This step assumes you want to create a new GitHub release with the APK
+        # It's triggered on push to main, and uses the commit SHA as version
+        # You might want to get the version from pubspec.yaml instead.
+        if: github.ref == 'refs/heads/main'
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Auto-generated token
+        with:
+          tag_name: v${{ github.run_number }} # Example: v1, v2, etc. Or parse from pubspec.yaml
+          release_name: Release Build ${{ github.run_number }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/app/outputs/flutter-apk/app-release.apk
+          asset_name: app-release-${{ github.run_number }}.apk
+          asset_content_type: application/vnd.android.package-archive
