@@ -55,7 +55,7 @@ class _SignUpPageState extends State<SignUpPage>
       backgroundColor: Colors.grey[50],
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Container(
+          child: SizedBox(
             height: size.height - MediaQuery.of(context).padding.top,
             child: Column(
               children: [
