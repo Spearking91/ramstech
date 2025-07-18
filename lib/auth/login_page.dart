@@ -106,30 +106,33 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                       children: [
                         // Logo/Icon Section
                         Container(
-                            height: 120,
-                            width: 120,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.white.withOpacity(0.3),
-                                  Colors.white.withOpacity(0.1),
-                                ],
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 20,
-                                  offset: const Offset(0, 10),
-                                ),
+                          height: 120,
+                          width: 120,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.white.withOpacity(0.3),
+                                Colors.white.withOpacity(0.1),
                               ],
                             ),
-                            child: Image.asset(
-                              'assets/logo/logo-icon-transparent.png',
-                              width: 30,
-                              height: 30,
-                              fit: BoxFit.contain,
-                            )),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 20,
+                                offset: const Offset(0, 10),
+                              ),
+                            ],
+                          ),
+                          // child: Image.asset(
+                          //   'assets/logo/logo-icon-transparent.png',
+                          //   width: 20,
+                          //   height: 20,
+                          //   fit: BoxFit.contain,
+                          // ),
+                          child:
+                              Icon(Icons.person, size: 50, color: Colors.white),
+                        ),
                         const SizedBox(height: 40),
 
                         // Welcome Text
