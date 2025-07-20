@@ -4,9 +4,14 @@ import 'package:ramstech/auth/login_page.dart';
 import 'package:ramstech/models/upload_model.dart';
 import 'package:ramstech/pages/history_page.dart';
 import 'package:ramstech/pages/profile_page.dart';
+import 'package:ramstech/services/firebase_auth_service.dart';
 import 'package:ramstech/services/firebase_database_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:ramstech/pages/update_device.dart';
+import 'package:ramstech/services/firestoreServices.dart'; // Add this import
 import 'package:ramstech/widgets/avatar.dart';
+import 'package:ramstech/services/version_check_service.dart';
+import 'package:ramstech/pages/update_page.dart';
 
 enum ChartMetric { pms, humidity, temperature, aqi }
 
@@ -22,7 +27,15 @@ class _HomePageState extends State<HomePage>
   UploadModel? _lastData;
   late TabController _tabController;
   ChartMetric _selectedMetric = ChartMetric.pms;
-  final List<UploadModel> _historicalData = [];
+  // final List<UploadModel> _historicalData = [];
+
+  // Add these for device selection
+  List<DeviceModel> _userDevices = [];
+  DeviceModel? _selectedDevice;
+  bool _loadingDevices = true;
+
+  bool _updateAvailable = false;
+  String? _latestVersion;
 
   @override
   void initState() {
@@ -33,6 +46,44 @@ class _HomePageState extends State<HomePage>
         _selectedMetric = ChartMetric.values[_tabController.index];
       });
     });
+    _fetchUserDevices();
+    _checkForUpdate(); // <-- Add this
+  }
+
+  Future<void> _checkForUpdate() async {
+    try {
+      // Replace with your actual GitHub owner/repo
+      final latest = await VersionService.getLatestGitHubVersion(
+        owner: 'Altertech01', // <-- your GitHub username/org
+        repo: 'ramstech', // <-- your repo name
+      );
+      final current = await VersionService.getCurrentVersion();
+      if (latest != null && latest != current) {
+        setState(() {
+          _updateAvailable = true;
+          _latestVersion = latest;
+        });
+      }
+    } catch (_) {
+      // Ignore errors for now
+    }
+  }
+
+  Future<void> _fetchUserDevices() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    setState(() => _loadingDevices = true);
+    try {
+      final devices = await FirestoreService.getUserDevices(user.uid);
+      setState(() {
+        _userDevices = devices;
+        if (_userDevices.isNotEmpty) {
+          _selectedDevice ??= _userDevices.first;
+        }
+      });
+    } finally {
+      setState(() => _loadingDevices = false);
+    }
   }
 
   @override
@@ -45,127 +96,244 @@ class _HomePageState extends State<HomePage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      body: StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, authSnapshot) {
-          if (authSnapshot.connectionState == ConnectionState.waiting) {
-            // return _buildLoadingState();
-          }
+      body: Stack(
+        children: [
+          // Main content
+          _buildMainContent(context),
+          // Update banner
+          if (_updateAvailable)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: MaterialBanner(
+                backgroundColor: Colors.yellow[700],
+                content: Text(
+                  'A new update ($_latestVersion) is available!',
+                  style: const TextStyle(color: Colors.black),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const UpdatePage()),
+                      );
+                    },
+                    child: const Text('Update'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _updateAvailable = false;
+                      });
+                    },
+                    child: const Text('Dismiss'),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 
-          if (!authSnapshot.hasData) {
-            return _buildUnauthenticatedState();
-          }
+  Widget _buildMainContent(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, authSnapshot) {
+        if (authSnapshot.connectionState == ConnectionState.waiting) {
+          // return _buildLoadingState();
+        }
 
-          return StreamBuilder<UploadModel>(
-            stream: FirebaseDatabaseMethods.getDataAsStream()
-                .where((data) => data != null)
-                .cast<UploadModel>(),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                _lastData = snapshot.data;
-              }
+        if (!authSnapshot.hasData) {
+          return _buildUnauthenticatedState();
+        }
 
-              return CustomScrollView(
-                slivers: [
-                  SliverAppBar(
-                    expandedHeight: 200,
-                    floating: false,
-                    pinned: true,
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    flexibleSpace: FlexibleSpaceBar(
-                      title: Text(
-                        'Air Quality Monitor',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onPrimary,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      background: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Theme.of(context).colorScheme.primary,
-                              Theme.of(context).colorScheme.primaryContainer,
+        // If still loading devices, show loading
+        if (_loadingDevices) {
+          return _buildLoadingState();
+        }
+
+        // If no devices, show a message
+        if (_userDevices.isEmpty) {
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(32),
+                child: Text(
+                  'No devices found. Please add a device to view data.',
+                  style: Theme.of(context).textTheme.titleMedium,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              FilledButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return UpdateDevice();
+                      },
+                    ),
+                  );
+                },
+                child: Text('Add device'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  _showLogoutDialog(context);
+                },
+                child: Text('Logout'),
+              ),
+            ],
+          );
+        }
+
+        // Use selected device's MAC address for data streams
+        final selectedMac = _selectedDevice?.macAddress ?? '';
+
+        return StreamBuilder<UploadModel>(
+          stream: FirebaseDatabaseMethods.getDeviceDataAsStream(selectedMac)
+              .where((data) => data != null)
+              .cast<UploadModel>(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              _lastData = snapshot.data;
+            }
+
+            return CustomScrollView(
+              slivers: [
+                SliverAppBar(
+                  expandedHeight: 200,
+                  floating: false,
+                  pinned: true,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  flexibleSpace: LayoutBuilder(
+                    builder: (context, constraints) {
+                      // Calculate the percentage collapsed (0 = expanded, 1 = collapsed)
+                      final double collapsedHeight =
+                          kToolbarHeight + MediaQuery.of(context).padding.top;
+                      final double expandedHeight = 200;
+                      final double t =
+                          ((constraints.maxHeight - collapsedHeight) /
+                                  (expandedHeight - collapsedHeight))
+                              .clamp(0.0, 1.0);
+
+                      return FlexibleSpaceBar(
+                        title: t < 0.5 // Collapsed (show device name or MAC)
+                            ? Text(
+                                _selectedDevice?.name?.isNotEmpty == true
+                                    ? '${_selectedDevice!.name}'
+                                    : _selectedDevice?.macAddress ?? '',
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onPrimary,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              )
+                            // Expanded (show "Air quality")
+                            : Text(
+                                'Air Quality Monitor',
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onPrimary,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                        background: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Theme.of(context).colorScheme.primary,
+                                Theme.of(context).colorScheme.primaryContainer,
+                              ],
+                            ),
+                          ),
+                          child: Stack(
+                            children: [
+                              Positioned(
+                                top: 60,
+                                right: 20,
+                                child: Icon(
+                                  Icons.air,
+                                  size: 120,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onPrimary
+                                      .withOpacity(0.1),
+                                ),
+                              ),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(left: 10),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Real-time Environmental Data',
+                                        style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onPrimary
+                                              .withOpacity(0.9),
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Stay informed, breathe better',
+                                        style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onPrimary
+                                              .withAlpha(125),
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              top: 60,
-                              right: 20,
-                              child: Icon(
-                                Icons.air,
-                                size: 120,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onPrimary
-                                    .withOpacity(0.1),
-                              ),
-                            ),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Real-time Environmental Data',
-                                    style: TextStyle(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onPrimary
-                                          .withOpacity(0.9),
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Stay informed, breathe better',
-                                    style: TextStyle(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onPrimary
-                                          .withAlpha(125),
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+                      );
+                    },
+                  ),
+                  actions: [
+                    Padding(
+                      padding: const EdgeInsets.only(right: 16.0),
+                      child: Avatar(
+                        radius: 18,
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const ProfilePage()),
+                          );
+                        },
                       ),
                     ),
-                    actions: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 16.0),
-                        child: Avatar(
-                          radius: 18,
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const ProfilePage()),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  SliverToBoxAdapter(
-                    child: _buildContent(context),
-                  ),
-                ],
-              );
-            },
-          );
-        },
-      ),
+                  ],
+                ),
+                SliverToBoxAdapter(
+                  child: _buildContent(context),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -264,6 +432,48 @@ class _HomePageState extends State<HomePage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Device selector using buildQuickDeviceAccess
+          SizedBox(
+            height: 48,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: _userDevices.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                final device = _userDevices[index];
+                final isSelected =
+                    device.macAddress == _selectedDevice?.macAddress;
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _selectedDevice = device;
+                    });
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? Theme.of(context).colorScheme.primary
+                          : Colors.grey[900],
+                      borderRadius: BorderRadius.circular(50),
+                      border: isSelected
+                          ? Border.all(
+                              color: Theme.of(context).colorScheme.primary,
+                              width: 2,
+                            )
+                          : null,
+                    ),
+                    child: _buildQuickDeviceAccess(
+                      device.name?.isNotEmpty == true
+                          ? device.name!
+                          : device.macAddress.substring(0, 7) + '...........',
+                      Icons.devices,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 16),
           _buildMetricsGrid(data),
           const SizedBox(height: 32),
           _buildRecommendationsCard(aqi: data?.aqi ?? 0),
@@ -274,6 +484,72 @@ class _HomePageState extends State<HomePage>
       ),
     );
   }
+
+  Widget _buildQuickDeviceAccess(String label, IconData icon) {
+    return Container(
+        padding: EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.grey[900],
+          borderRadius: BorderRadius.circular(50),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.white),
+            SizedBox(width: 4),
+            Text(
+              label,
+              style: TextStyle(color: Colors.white, fontSize: 12),
+            ),
+          ],
+        ));
+  }
+
+  // Widget _buildDeviceSelector() {
+  //   return Row(
+  //     children: [
+  //       const Icon(Icons.devices, size: 20),
+  //       const SizedBox(width: 8),
+  //       Expanded(
+  //         child: DropdownButton<DeviceModel>(
+  //           value: _selectedDevice,
+  //           isExpanded: true,
+  //           icon: const Icon(Icons.arrow_drop_down),
+  //           underline:
+  //               Container(height: 1, color: Theme.of(context).dividerColor),
+  //           items: _userDevices.map((device) {
+  //             return DropdownMenuItem<DeviceModel>(
+  //               value: device,
+  //               child: Text(
+  //                 device.name?.isNotEmpty == true
+  //                     ? device.name!
+  //                     : device.macAddress,
+  //                 overflow: TextOverflow.ellipsis,
+  //               ),
+  //             );
+  //           }).toList(),
+  //           onChanged: (device) {
+  //             setState(() {
+  //               _selectedDevice = device;
+  //             });
+  //           },
+  //         ),
+  //       ),
+  //       IconButton(
+  //         icon: Icon(Icons.add),
+  //         onPressed: () {
+  //           Navigator.push(
+  //             context,
+  //             MaterialPageRoute(
+  //               builder: (context) {
+  //                 return UpdateDevice();
+  //               },
+  //             ),
+  //           );
+  //         },
+  //       ),
+  //     ],
+  //   );
+  // }
 
   Widget _buildMetricsGrid(UploadModel? data) {
     final metrics = [
@@ -496,7 +772,7 @@ class _HomePageState extends State<HomePage>
             const SizedBox(height: 20),
             _buildMetricTabs(),
             const SizedBox(height: 16),
-            _buildChart(),
+            _buildChart(), // This will use the selected device
           ],
         ),
       ),
@@ -531,11 +807,12 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _buildChart() {
+    final selectedMac = _selectedDevice?.macAddress ?? '';
     return SizedBox(
       height: 200,
       child: StreamBuilder<List<UploadModel>>(
         stream: FirebaseDatabaseMethods.getHistoricalDataAsStream(
-          FirebaseDatabaseMethods.defaultDeviceMac,
+          selectedMac,
           limit: 24,
         ),
         builder: (context, snapshot) {
@@ -750,6 +1027,51 @@ class _HomePageState extends State<HomePage>
         ],
       ),
     );
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Sign Out'),
+        content: const Text('Are you sure you want to sign out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await _signOut(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Sign Out'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _signOut(BuildContext context) async {
+    try {
+      await FirebaseAuthMethod.auth.signOut();
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+        (route) => false,
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error signing out: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   // Helper methods for status and colors

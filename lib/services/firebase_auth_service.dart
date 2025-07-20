@@ -48,6 +48,8 @@ class FirebaseAuthMethod {
       // Sign out from Google if signed in
       final googleSignIn = GoogleSignIn();
       if (await googleSignIn.isSignedIn()) {
+        await googleSignIn
+            .disconnect(); // <-- Use disconnect instead of signOut
         await googleSignIn.signOut();
       }
 
@@ -71,7 +73,9 @@ class FirebaseAuthMethod {
 
   static Future<User?> googleSignIn() async {
     try {
-      final googleUser = await GoogleSignIn().signIn();
+      final googleSignIn = GoogleSignIn();
+      await googleSignIn.disconnect(); // Always disconnect before sign-in
+      final googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
         // User cancelled the sign-in
         return null;

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:ramstech/auth/forget_page.dart';
 import 'package:ramstech/auth/sign_up_page.dart';
 import 'package:ramstech/pages/home_page.dart';
 import 'package:ramstech/services/firebase_auth_service.dart';
-import 'package:ramstech/widgets/custom_button.dart';
-import 'package:ramstech/widgets/google_auth_button.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -125,11 +124,14 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                               ),
                             ],
                           ),
-                          child: const Icon(
-                            Icons.rocket_launch_rounded,
-                            size: 60,
-                            color: Colors.white,
-                          ),
+                          // child: Image.asset(
+                          //   'assets/logo/logo-icon-transparent.png',
+                          //   width: 20,
+                          //   height: 20,
+                          //   fit: BoxFit.contain,
+                          // ),
+                          child:
+                              Icon(Icons.person, size: 50, color: Colors.white),
                         ),
                         const SizedBox(height: 40),
 
@@ -177,7 +179,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                             ),
                           ),
                           child: Padding(
-                            padding: const EdgeInsets.all(32.0),
+                            padding: const EdgeInsets.all(12.0),
                             child: Form(
                               key: _formKey,
                               child: Column(
@@ -504,8 +506,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
             borderRadius: BorderRadius.circular(16),
           ),
         ),
-        icon: Image.asset(
-          'assets/images/google_logo.png', // Make sure to add this asset
+        icon: SvgPicture.asset(
+          'assets/images/google-logo.svg', // Make sure to add this asset
           width: 24,
           height: 24,
           errorBuilder: (context, error, stackTrace) => Icon(

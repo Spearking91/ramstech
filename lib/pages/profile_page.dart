@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:ramstech/auth/login_page.dart';
 import 'package:ramstech/data/notifiers.dart';
+import 'package:ramstech/pages/devices_page.dart';
 import 'package:ramstech/pages/update_page.dart';
 import 'package:ramstech/services/firebase_auth_service.dart';
+import 'package:ramstech/services/firestoreServices.dart';
 import 'package:ramstech/widgets/avatar.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -17,6 +19,11 @@ class _ProfilePageState extends State<ProfilePage>
   late AnimationController _animationController;
   late Animation<double> _slideAnimation;
   late Animation<double> _fadeAnimation;
+  List<DeviceModel> _userDevices = [];
+  // DeviceModel? _selectedDevice;
+  int _totalDevices = 0;
+  int _activeDevices = 0;
+  int _offlineDevices = 0;
 
   @override
   void initState() {
@@ -43,6 +50,8 @@ class _ProfilePageState extends State<ProfilePage>
     ));
 
     _animationController.forward();
+
+    _fetchDeviceStats(); // <-- Add this line
   }
 
   @override
@@ -55,9 +64,9 @@ class _ProfilePageState extends State<ProfilePage>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final userName = FirebaseAuthMethod.user?.displayName?.isNotEmpty == true
-        ? FirebaseAuthMethod.user!.displayName!
-        : 'Unknown User';
+    // final userName = FirebaseAuthMethod.user?.displayName?.isNotEmpty == true
+    //     ? FirebaseAuthMethod.user!.displayName!
+    //     : 'Unknown User';
 
     return Scaffold(
       backgroundColor: isDark ? Colors.grey[900] : Colors.grey[50],
@@ -78,15 +87,15 @@ class _ProfilePageState extends State<ProfilePage>
               ),
 
               // Profile Stats Card
-              // SliverToBoxAdapter(
-              //   child: Transform.translate(
-              //     offset: Offset(0, _slideAnimation.value * 1.5),
-              //     child: Opacity(
-              //       opacity: _fadeAnimation.value,
-              //       child: _buildStatsCard(isDark),
-              //     ),
-              //   ),
-              // ),
+              SliverToBoxAdapter(
+                child: Transform.translate(
+                  offset: Offset(0, _slideAnimation.value * 1.5),
+                  child: Opacity(
+                    opacity: _fadeAnimation.value,
+                    child: _buildStatsCard(isDark),
+                  ),
+                ),
+              ),
 
               // Account Settings
               SliverToBoxAdapter(
@@ -216,9 +225,13 @@ class _ProfilePageState extends State<ProfilePage>
 
   Widget _buildStatsCard(bool isDark) {
     final stats = [
-      {'label': 'Devices', 'value': '2', 'icon': Icons.devices},
-      {'label': 'Active', 'value': '7', 'icon': Icons.power},
-      {'label': 'Offline', 'value': '4', 'icon': Icons.power_off},
+      {'label': 'Devices', 'value': '$_totalDevices', 'icon': Icons.devices},
+      {'label': 'Active', 'value': '$_activeDevices', 'icon': Icons.power},
+      {
+        'label': 'Offline',
+        'value': '$_offlineDevices',
+        'icon': Icons.power_off
+      },
     ];
 
     return Container(
@@ -238,13 +251,38 @@ class _ProfilePageState extends State<ProfilePage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Device Overview',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white : Colors.grey[800],
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Device Overview',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white : Colors.grey[800],
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return const DevicesPage();
+                      },
+                    ),
+                  );
+                },
+                child: Text(
+                  'View all',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white54 : Colors.grey[900],
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           Row(
@@ -562,12 +600,12 @@ class _ProfilePageState extends State<ProfilePage>
     );
   }
 
-  void _editProfile(BuildContext context) {
-    // Implement edit profile functionality
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Edit profile feature coming soon!')),
-    );
-  }
+  // void _editProfile(BuildContext context) {
+  //   // Implement edit profile functionality
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     const SnackBar(content: Text('Edit profile feature coming soon!')),
+  //   );
+  // }
 
   void _showEmailDialog(BuildContext context) {
     // Implement email change dialog
@@ -687,5 +725,32 @@ class _ProfilePageState extends State<ProfilePage>
         ),
       );
     }
+  }
+
+  Future<void> _fetchDeviceStats() async {
+    final userId = FirebaseAuthMethod.user?.uid;
+    if (userId == null) return;
+
+    final devices = await FirestoreService.getUserDevices(userId);
+    final now = DateTime.now();
+
+    int active = 0;
+    int offline = 0;
+
+    for (final device in devices) {
+      if (device.lastSeen != null &&
+          now.difference(device.lastSeen!).inMinutes < 4) {
+        active++;
+      } else {
+        offline++;
+      }
+    }
+
+    setState(() {
+      _userDevices = devices;
+      _totalDevices = devices.length;
+      _activeDevices = active;
+      _offlineDevices = offline;
+    });
   }
 }
