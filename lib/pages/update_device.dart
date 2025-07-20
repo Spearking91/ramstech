@@ -155,6 +155,7 @@ class _UpdateDeviceState extends State<UpdateDevice>
                                       : 'Device ID obtained',
                                   icon: Icons.device_hub,
                                   readonly: true,
+                                  obscureText: true,
                                   suffixIcon: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [

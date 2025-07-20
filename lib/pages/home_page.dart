@@ -4,9 +4,10 @@ import 'package:ramstech/auth/login_page.dart';
 import 'package:ramstech/models/upload_model.dart';
 import 'package:ramstech/pages/history_page.dart';
 import 'package:ramstech/pages/profile_page.dart';
-import 'package:ramstech/pages/update_device.dart';
+import 'package:ramstech/services/firebase_auth_service.dart';
 import 'package:ramstech/services/firebase_database_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:ramstech/pages/update_device.dart';
 import 'package:ramstech/services/firestoreServices.dart'; // Add this import
 import 'package:ramstech/widgets/avatar.dart';
 import 'package:ramstech/services/version_check_service.dart';
@@ -26,7 +27,7 @@ class _HomePageState extends State<HomePage>
   UploadModel? _lastData;
   late TabController _tabController;
   ChartMetric _selectedMetric = ChartMetric.pms;
-  final List<UploadModel> _historicalData = [];
+  // final List<UploadModel> _historicalData = [];
 
   // Add these for device selection
   List<DeviceModel> _userDevices = [];
@@ -156,15 +157,37 @@ class _HomePageState extends State<HomePage>
 
         // If no devices, show a message
         if (_userDevices.isEmpty) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Text(
-                'No devices found. Please add a device to view data.',
-                style: Theme.of(context).textTheme.titleMedium,
-                textAlign: TextAlign.center,
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(32),
+                child: Text(
+                  'No devices found. Please add a device to view data.',
+                  style: Theme.of(context).textTheme.titleMedium,
+                  textAlign: TextAlign.center,
+                ),
               ),
-            ),
+              FilledButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return UpdateDevice();
+                      },
+                    ),
+                  );
+                },
+                child: Text('Add device'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  _showLogoutDialog(context);
+                },
+                child: Text('Logout'),
+              ),
+            ],
           );
         }
 
@@ -481,52 +504,52 @@ class _HomePageState extends State<HomePage>
         ));
   }
 
-  Widget _buildDeviceSelector() {
-    return Row(
-      children: [
-        const Icon(Icons.devices, size: 20),
-        const SizedBox(width: 8),
-        Expanded(
-          child: DropdownButton<DeviceModel>(
-            value: _selectedDevice,
-            isExpanded: true,
-            icon: const Icon(Icons.arrow_drop_down),
-            underline:
-                Container(height: 1, color: Theme.of(context).dividerColor),
-            items: _userDevices.map((device) {
-              return DropdownMenuItem<DeviceModel>(
-                value: device,
-                child: Text(
-                  device.name?.isNotEmpty == true
-                      ? device.name!
-                      : device.macAddress,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              );
-            }).toList(),
-            onChanged: (device) {
-              setState(() {
-                _selectedDevice = device;
-              });
-            },
-          ),
-        ),
-        IconButton(
-          icon: Icon(Icons.add),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) {
-                  return UpdateDevice();
-                },
-              ),
-            );
-          },
-        ),
-      ],
-    );
-  }
+  // Widget _buildDeviceSelector() {
+  //   return Row(
+  //     children: [
+  //       const Icon(Icons.devices, size: 20),
+  //       const SizedBox(width: 8),
+  //       Expanded(
+  //         child: DropdownButton<DeviceModel>(
+  //           value: _selectedDevice,
+  //           isExpanded: true,
+  //           icon: const Icon(Icons.arrow_drop_down),
+  //           underline:
+  //               Container(height: 1, color: Theme.of(context).dividerColor),
+  //           items: _userDevices.map((device) {
+  //             return DropdownMenuItem<DeviceModel>(
+  //               value: device,
+  //               child: Text(
+  //                 device.name?.isNotEmpty == true
+  //                     ? device.name!
+  //                     : device.macAddress,
+  //                 overflow: TextOverflow.ellipsis,
+  //               ),
+  //             );
+  //           }).toList(),
+  //           onChanged: (device) {
+  //             setState(() {
+  //               _selectedDevice = device;
+  //             });
+  //           },
+  //         ),
+  //       ),
+  //       IconButton(
+  //         icon: Icon(Icons.add),
+  //         onPressed: () {
+  //           Navigator.push(
+  //             context,
+  //             MaterialPageRoute(
+  //               builder: (context) {
+  //                 return UpdateDevice();
+  //               },
+  //             ),
+  //           );
+  //         },
+  //       ),
+  //     ],
+  //   );
+  // }
 
   Widget _buildMetricsGrid(UploadModel? data) {
     final metrics = [
@@ -1004,6 +1027,51 @@ class _HomePageState extends State<HomePage>
         ],
       ),
     );
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Sign Out'),
+        content: const Text('Are you sure you want to sign out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await _signOut(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Sign Out'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _signOut(BuildContext context) async {
+    try {
+      await FirebaseAuthMethod.auth.signOut();
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+        (route) => false,
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error signing out: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   // Helper methods for status and colors

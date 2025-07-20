@@ -20,7 +20,7 @@ class _ProfilePageState extends State<ProfilePage>
   late Animation<double> _slideAnimation;
   late Animation<double> _fadeAnimation;
   List<DeviceModel> _userDevices = [];
-  DeviceModel? _selectedDevice;
+  // DeviceModel? _selectedDevice;
   int _totalDevices = 0;
   int _activeDevices = 0;
   int _offlineDevices = 0;
@@ -64,9 +64,9 @@ class _ProfilePageState extends State<ProfilePage>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final userName = FirebaseAuthMethod.user?.displayName?.isNotEmpty == true
-        ? FirebaseAuthMethod.user!.displayName!
-        : 'Unknown User';
+    // final userName = FirebaseAuthMethod.user?.displayName?.isNotEmpty == true
+    //     ? FirebaseAuthMethod.user!.displayName!
+    //     : 'Unknown User';
 
     return Scaffold(
       backgroundColor: isDark ? Colors.grey[900] : Colors.grey[50],
@@ -600,12 +600,12 @@ class _ProfilePageState extends State<ProfilePage>
     );
   }
 
-  void _editProfile(BuildContext context) {
-    // Implement edit profile functionality
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Edit profile feature coming soon!')),
-    );
-  }
+  // void _editProfile(BuildContext context) {
+  //   // Implement edit profile functionality
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     const SnackBar(content: Text('Edit profile feature coming soon!')),
+  //   );
+  // }
 
   void _showEmailDialog(BuildContext context) {
     // Implement email change dialog

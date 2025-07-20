@@ -107,9 +107,8 @@ class _DevicesPageState extends State<DevicesPage> {
                                       4;
                               final statusText =
                                   isOnline ? 'Online' : 'Offline';
-                              final statusColor = isOnline
-                                  ? Colors.lightGreen
-                                  : Colors.redAccent;
+                              final statusColor =
+                                  isOnline ? Colors.lightGreen : Colors.orange;
 
                               return ListTile(
                                 contentPadding:
@@ -128,7 +127,7 @@ class _DevicesPageState extends State<DevicesPage> {
                                 subtitle: Text(
                                   device.macAddress.length >= 7
                                       ? device.macAddress.substring(0, 7) +
-                                          '...'
+                                          '***********'
                                       : device.macAddress,
                                   style: TextStyle(
                                       color: isDark
@@ -171,14 +170,23 @@ class _DevicesPageState extends State<DevicesPage> {
                                                                   MainAxisSize
                                                                       .min,
                                                               children: [
-                                                                Text(device
-                                                                    .macAddress),
+                                                                Text(
+                                                                  device.macAddress
+                                                                              .length >=
+                                                                          7
+                                                                      ? device.macAddress.substring(
+                                                                              0,
+                                                                              7) +
+                                                                          '*********'
+                                                                      : device
+                                                                          .macAddress,
+                                                                ),
                                                                 PrettyQrView
                                                                     .data(
                                                                   data: device
                                                                       .macAddress,
                                                                   decoration:
-                                                                      PrettyQrDecoration(
+                                                                      const PrettyQrDecoration(
                                                                     background:
                                                                         Colors
                                                                             .white,

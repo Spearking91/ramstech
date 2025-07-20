@@ -5,6 +5,8 @@ import 'dart:async';
 import 'dart:convert';
 
 class Esp32Bluetooth extends StatefulWidget {
+  const Esp32Bluetooth({super.key});
+
   @override
   _Esp32BluetoothState createState() => _Esp32BluetoothState();
 }
@@ -642,7 +644,7 @@ class _Esp32BluetoothState extends State<Esp32Bluetooth> {
                         ),
                       ),
                     );
-                  }).toList(),
+                  }),
               ],
 
               // WiFi Configuration Section
@@ -821,7 +823,7 @@ class _Esp32BluetoothState extends State<Esp32Bluetooth> {
                         'Check if ESP32 advertising hasn\'t expired (5 min)'),
                     SizedBox(height: 8),
                     Text(
-                      'Service UUID: ${SERVICE_UUID}',
+                      'Service UUID: $SERVICE_UUID',
                       style: TextStyle(
                         fontSize: 11,
                         color: Colors.amber[700],
