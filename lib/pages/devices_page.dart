@@ -2,11 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:ramstech/pages/update_device.dart';
 import 'package:ramstech/services/firebase_auth_service.dart';
-<<<<<<< HEAD
 import 'package:ramstech/services/firestore_services.dart';
-=======
-import 'package:ramstech/services/firestoreServices.dart';
->>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
 
 class DevicesPage extends StatefulWidget {
   const DevicesPage({super.key});
@@ -130,12 +126,7 @@ class _DevicesPageState extends State<DevicesPage> {
                                 ),
                                 subtitle: Text(
                                   device.macAddress.length >= 7
-<<<<<<< HEAD
                                       ? '${device.macAddress.substring(0, 7)}***********'
-=======
-                                      ? device.macAddress.substring(0, 7) +
-                                          '***********'
->>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
                                       : device.macAddress,
                                   style: TextStyle(
                                       color: isDark
@@ -182,16 +173,9 @@ class _DevicesPageState extends State<DevicesPage> {
                                                                   device.macAddress
                                                                               .length >=
                                                                           7
-<<<<<<< HEAD
                                                                       ? '${device.macAddress.substring(
                                                                               0,
                                                                               7)}*********'
-=======
-                                                                      ? device.macAddress.substring(
-                                                                              0,
-                                                                              7) +
-                                                                          '*********'
->>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
                                                                       : device
                                                                           .macAddress,
                                                                 ),

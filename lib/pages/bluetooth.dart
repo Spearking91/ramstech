@@ -815,12 +815,13 @@ class _Esp32BluetoothState extends State<Esp32Bluetooth> {
                     ),
                     SizedBox(height: 12),
                     _buildTroubleshootingItem('Ensure Bluetooth is enabled'),
+                    _buildTroubleshootingItem(
+                        'Check if ESP32 advertising hasn\'t expired (1 min)'),
+                    _buildTroubleshootingItem('Ensure Bluetooth is enabled'),
                     _buildTroubleshootingItem('Location services must be ON'),
                     _buildTroubleshootingItem('Grant all required permissions'),
                     _buildTroubleshootingItem(
                         'ESP32 should be powered and advertising'),
-                    _buildTroubleshootingItem(
-                        'Check if ESP32 advertising hasn\'t expired (5 min)'),
                     SizedBox(height: 8),
                     Text(
                       'Service UUID: $SERVICE_UUID',

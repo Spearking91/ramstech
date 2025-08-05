@@ -4,11 +4,7 @@ import 'package:ramstech/data/notifiers.dart';
 import 'package:ramstech/pages/devices_page.dart';
 import 'package:ramstech/pages/update_page.dart';
 import 'package:ramstech/services/firebase_auth_service.dart';
-<<<<<<< HEAD
 import 'package:ramstech/services/firestore_services.dart';
-=======
-import 'package:ramstech/services/firestoreServices.dart';
->>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
 import 'package:ramstech/widgets/avatar.dart';
 
 class ProfilePage extends StatefulWidget {

@@ -7,14 +7,9 @@ import 'package:ramstech/pages/profile_page.dart';
 import 'package:ramstech/services/firebase_auth_service.dart';
 import 'package:ramstech/services/firebase_database_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-<<<<<<< HEAD
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import 'package:ramstech/pages/update_device.dart';
 import 'package:ramstech/services/firestore_services.dart'; // Add this import
-=======
-import 'package:ramstech/pages/update_device.dart';
-import 'package:ramstech/services/firestoreServices.dart'; // Add this import
->>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
 import 'package:ramstech/widgets/avatar.dart';
 import 'package:ramstech/services/version_check_service.dart';
 import 'package:ramstech/pages/update_page.dart';
@@ -42,7 +37,6 @@ class _HomePageState extends State<HomePage>
 
   bool _updateAvailable = false;
   String? _latestVersion;
-<<<<<<< HEAD
 
   final GlobalKey _pmKey = GlobalKey();
   final GlobalKey _humidityKey = GlobalKey();
@@ -54,8 +48,6 @@ class _HomePageState extends State<HomePage>
   final GlobalKey _historyKey = GlobalKey();
   TutorialCoachMark? _tutorialCoachMark;
   final ScrollController _scrollController = ScrollController();
-=======
->>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
 
   @override
   void initState() {
@@ -229,7 +221,7 @@ class _HomePageState extends State<HomePage>
             }
 
             return CustomScrollView(
->>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
+              controller: _scrollController, // <-- add this
               slivers: [
                 SliverAppBar(
                   expandedHeight: 200,
@@ -277,13 +269,8 @@ class _HomePageState extends State<HomePage>
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                               colors: [
-<<<<<<< HEAD
                                 Colors.blue.shade200,
                                 Colors.blue.shade400,
-=======
-                                Theme.of(context).colorScheme.primary,
-                                Theme.of(context).colorScheme.primaryContainer,
->>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
                               ],
                             ),
                           ),
@@ -304,11 +291,7 @@ class _HomePageState extends State<HomePage>
                               Align(
                                 alignment: Alignment.centerLeft,
                                 child: Padding(
-<<<<<<< HEAD
                                   padding: const EdgeInsets.only(left: 16),
-=======
-                                  padding: const EdgeInsets.only(left: 10),
->>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     crossAxisAlignment:
@@ -346,7 +329,6 @@ class _HomePageState extends State<HomePage>
                     },
                   ),
                   actions: [
-<<<<<<< HEAD
                     IconButton(
                       icon: Icon(Icons.help_outline),
                       onPressed: () async {
@@ -367,11 +349,6 @@ class _HomePageState extends State<HomePage>
                       padding: const EdgeInsets.only(right: 16.0),
                       child: Avatar(
                         key: _profileKey,
-=======
-                    Padding(
-                      padding: const EdgeInsets.only(right: 16.0),
-                      child: Avatar(
->>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
                         radius: 18,
                         onPressed: () {
                           Navigator.push(
@@ -499,18 +476,14 @@ class _HomePageState extends State<HomePage>
               separatorBuilder: (_, __) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
                 final device = _userDevices[index];
-<<<<<<< HEAD
                 final isOnline = device.lastSeen != null &&
                     DateTime.now().difference(device.lastSeen!).inMinutes < 4;
-=======
->>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
                 final isSelected =
                     device.macAddress == _selectedDevice?.macAddress;
                 return GestureDetector(
                   onTap: () {
                     setState(() {
                       _selectedDevice = device;
-<<<<<<< HEAD
                       // Update the defaultDeviceMac when device is selected
                       FirebaseDatabaseMethods.defaultDeviceMac =
                           device.macAddress;
@@ -518,11 +491,6 @@ class _HomePageState extends State<HomePage>
                   },
                   child: Container(
                     key: _deviceKey,
-=======
-                    });
-                  },
-                  child: Container(
->>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
                     decoration: BoxDecoration(
                       color: isSelected
                           ? Theme.of(context).colorScheme.primary
@@ -536,19 +504,11 @@ class _HomePageState extends State<HomePage>
                           : null,
                     ),
                     child: _buildQuickDeviceAccess(
-<<<<<<< HEAD
                         device.name?.isNotEmpty == true
                             ? device.name!
                             : '${device.macAddress.substring(0, 7)}...........',
                         Icons.devices,
                         isOnline),
-=======
-                      device.name?.isNotEmpty == true
-                          ? device.name!
-                          : device.macAddress.substring(0, 7) + '...........',
-                      Icons.devices,
-                    ),
->>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
                   ),
                 );
               },
@@ -566,11 +526,7 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-<<<<<<< HEAD
   Widget _buildQuickDeviceAccess(String label, IconData icon, bool isOnline) {
-=======
-  Widget _buildQuickDeviceAccess(String label, IconData icon) {
->>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
     return Container(
         padding: EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -585,7 +541,6 @@ class _HomePageState extends State<HomePage>
               label,
               style: TextStyle(color: Colors.white, fontSize: 12),
             ),
-<<<<<<< HEAD
             SizedBox(width: 4),
             Container(
               width: 10,
@@ -595,8 +550,6 @@ class _HomePageState extends State<HomePage>
                 color: isOnline ? Colors.lightGreen : Colors.amber,
               ),
             )
-=======
->>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
           ],
         ));
   }
@@ -1186,7 +1139,6 @@ class _HomePageState extends State<HomePage>
     }
   }
 
-<<<<<<< HEAD
   void _showTutorial() {
     int currentTutorialStep = 0;
     final targets = _createTargets();
@@ -1467,8 +1419,6 @@ class _HomePageState extends State<HomePage>
 
 //   super.dispose();
 // }
-=======
->>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
   // Helper methods for status and colors
   Color _getAQIColor(double value) {
     if (value <= 50) return Colors.green;
