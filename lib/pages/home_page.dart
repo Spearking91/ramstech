@@ -163,10 +163,10 @@ class _HomePageState extends State<HomePage>
           return _buildUnauthenticatedState();
         }
 
-<<<<<<< HEAD
-            return CustomScrollView(
-              controller: _scrollController, // <-- add this
-=======
+
+            // return CustomScrollView(
+            //   controller: _scrollController, // <-- add this
+
         // If still loading devices, show loading
         if (_loadingDevices) {
           return _buildLoadingState();
