@@ -6,6 +6,9 @@ import 'package:ramstech/pages/history_page.dart';
 import 'package:ramstech/pages/profile_page.dart';
 import 'package:ramstech/services/firebase_database_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
+import 'package:ramstech/pages/update_device.dart';
+import 'package:ramstech/services/firestore_services.dart'; // Add this import
 import 'package:ramstech/widgets/avatar.dart';
 
 enum ChartMetric { pms, humidity, temperature, aqi }
@@ -22,7 +25,26 @@ class _HomePageState extends State<HomePage>
   UploadModel? _lastData;
   late TabController _tabController;
   ChartMetric _selectedMetric = ChartMetric.pms;
-  final List<UploadModel> _historicalData = [];
+  // final List<UploadModel> _historicalData = [];
+
+  // Add these for device selection
+  List<DeviceModel> _userDevices = [];
+  DeviceModel? _selectedDevice;
+  bool _loadingDevices = true;
+
+  bool _updateAvailable = false;
+  String? _latestVersion;
+
+  final GlobalKey _pmKey = GlobalKey();
+  final GlobalKey _humidityKey = GlobalKey();
+  final GlobalKey _tempKey = GlobalKey();
+  final GlobalKey _aqiKey = GlobalKey();
+  final GlobalKey _profileKey = GlobalKey();
+  final GlobalKey _deviceKey = GlobalKey();
+  final GlobalKey _recommendationsKey = GlobalKey();
+  final GlobalKey _historyKey = GlobalKey();
+  TutorialCoachMark? _tutorialCoachMark;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -38,6 +60,7 @@ class _HomePageState extends State<HomePage>
   @override
   void dispose() {
     _tabController.dispose();
+    _tutorialCoachMark?.finish();
     super.dispose();
   }
 
@@ -65,107 +88,155 @@ class _HomePageState extends State<HomePage>
                 _lastData = snapshot.data;
               }
 
-              return CustomScrollView(
-                slivers: [
-                  SliverAppBar(
-                    expandedHeight: 200,
-                    floating: false,
-                    pinned: true,
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    flexibleSpace: FlexibleSpaceBar(
-                      title: Text(
-                        'Air Quality Monitor',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onPrimary,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      background: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Theme.of(context).colorScheme.primary,
-                              Theme.of(context).colorScheme.primaryContainer,
+            return CustomScrollView(
+              controller: _scrollController, // <-- add this
+              slivers: [
+                SliverAppBar(
+                  expandedHeight: 200,
+                  floating: false,
+                  pinned: true,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  flexibleSpace: LayoutBuilder(
+                    builder: (context, constraints) {
+                      // Calculate the percentage collapsed (0 = expanded, 1 = collapsed)
+                      final double collapsedHeight =
+                          kToolbarHeight + MediaQuery.of(context).padding.top;
+                      final double expandedHeight = 200;
+                      final double t =
+                          ((constraints.maxHeight - collapsedHeight) /
+                                  (expandedHeight - collapsedHeight))
+                              .clamp(0.0, 1.0);
+
+                      return FlexibleSpaceBar(
+                        title: t < 0.5 // Collapsed (show device name or MAC)
+                            ? Text(
+                                _selectedDevice?.name?.isNotEmpty == true
+                                    ? '${_selectedDevice!.name}'
+                                    : _selectedDevice?.macAddress ?? '',
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onPrimary,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              )
+                            // Expanded (show "Air quality")
+                            : Text(
+                                'Air Quality Monitor',
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onPrimary,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                        background: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Colors.blue.shade200,
+                                Colors.blue.shade400,
+                              ],
+                            ),
+                          ),
+                          child: Stack(
+                            children: [
+                              Positioned(
+                                top: 60,
+                                right: 20,
+                                child: Icon(
+                                  Icons.air,
+                                  size: 120,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onPrimary
+                                      .withOpacity(0.1),
+                                ),
+                              ),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(left: 16),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Real-time Environmental Data',
+                                        style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onPrimary
+                                              .withOpacity(0.9),
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Stay informed, breathe better',
+                                        style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onPrimary
+                                              .withAlpha(125),
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              top: 60,
-                              right: 20,
-                              child: Icon(
-                                Icons.air,
-                                size: 120,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onPrimary
-                                    .withOpacity(0.1),
-                              ),
-                            ),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Real-time Environmental Data',
-                                    style: TextStyle(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onPrimary
-                                          .withOpacity(0.9),
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Stay informed, breathe better',
-                                    style: TextStyle(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onPrimary
-                                          .withAlpha(125),
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+                      );
+                    },
+                  ),
+                  actions: [
+                    IconButton(
+                      icon: Icon(Icons.help_outline),
+                      onPressed: () async {
+                        await _scrollController.animateTo(
+                          0.0,
+                          duration: Duration(milliseconds: 500),
+                          curve: Curves.easeInOut,
+                        );
+
+                        await Future.delayed(
+                            Duration(seconds: 1)); // Wait 1 second
+
+                        _showTutorial(); // Now call the tutorial
+                      },
+                      tooltip: 'Show Tutorial',
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 16.0),
+                      child: Avatar(
+                        key: _profileKey,
+                        radius: 18,
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const ProfilePage()),
+                          );
+                        },
                       ),
                     ),
-                    actions: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 16.0),
-                        child: Avatar(
-                          radius: 18,
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const ProfilePage()),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  SliverToBoxAdapter(
-                    child: _buildContent(context),
-                  ),
-                ],
-              );
-            },
-          );
-        },
-      ),
+                  ],
+                ),
+                SliverToBoxAdapter(
+                  child: _buildContent(context),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -264,6 +335,54 @@ class _HomePageState extends State<HomePage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Device selector using buildQuickDeviceAccess
+          SizedBox(
+            height: 48,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: _userDevices.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                final device = _userDevices[index];
+                final isOnline = device.lastSeen != null &&
+                    DateTime.now().difference(device.lastSeen!).inMinutes < 4;
+                final isSelected =
+                    device.macAddress == _selectedDevice?.macAddress;
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _selectedDevice = device;
+                      // Update the defaultDeviceMac when device is selected
+                      FirebaseDatabaseMethods.defaultDeviceMac =
+                          device.macAddress;
+                    });
+                  },
+                  child: Container(
+                    key: _deviceKey,
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? Theme.of(context).colorScheme.primary
+                          : Colors.grey[900],
+                      borderRadius: BorderRadius.circular(50),
+                      border: isSelected
+                          ? Border.all(
+                              color: Theme.of(context).colorScheme.primary,
+                              width: 2,
+                            )
+                          : null,
+                    ),
+                    child: _buildQuickDeviceAccess(
+                        device.name?.isNotEmpty == true
+                            ? device.name!
+                            : '${device.macAddress.substring(0, 7)}...........',
+                        Icons.devices,
+                        isOnline),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 16),
           _buildMetricsGrid(data),
           const SizedBox(height: 32),
           _buildRecommendationsCard(aqi: data?.aqi ?? 0),
@@ -274,6 +393,81 @@ class _HomePageState extends State<HomePage>
       ),
     );
   }
+
+  Widget _buildQuickDeviceAccess(String label, IconData icon, bool isOnline) {
+    return Container(
+        padding: EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.grey[900],
+          borderRadius: BorderRadius.circular(50),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.white),
+            SizedBox(width: 4),
+            Text(
+              label,
+              style: TextStyle(color: Colors.white, fontSize: 12),
+            ),
+            SizedBox(width: 4),
+            Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(50),
+                color: isOnline ? Colors.lightGreen : Colors.amber,
+              ),
+            )
+          ],
+        ));
+  }
+
+  // Widget _buildDeviceSelector() {
+  //   return Row(
+  //     children: [
+  //       const Icon(Icons.devices, size: 20),
+  //       const SizedBox(width: 8),
+  //       Expanded(
+  //         child: DropdownButton<DeviceModel>(
+  //           value: _selectedDevice,
+  //           isExpanded: true,
+  //           icon: const Icon(Icons.arrow_drop_down),
+  //           underline:
+  //               Container(height: 1, color: Theme.of(context).dividerColor),
+  //           items: _userDevices.map((device) {
+  //             return DropdownMenuItem<DeviceModel>(
+  //               value: device,
+  //               child: Text(
+  //                 device.name?.isNotEmpty == true
+  //                     ? device.name!
+  //                     : device.macAddress,
+  //                 overflow: TextOverflow.ellipsis,
+  //               ),
+  //             );
+  //           }).toList(),
+  //           onChanged: (device) {
+  //             setState(() {
+  //               _selectedDevice = device;
+  //             });
+  //           },
+  //         ),
+  //       ),
+  //       IconButton(
+  //         icon: Icon(Icons.add),
+  //         onPressed: () {
+  //           Navigator.push(
+  //             context,
+  //             MaterialPageRoute(
+  //               builder: (context) {
+  //                 return UpdateDevice();
+  //               },
+  //             ),
+  //           );
+  //         },
+  //       ),
+  //     ],
+  //   );
+  // }
 
   Widget _buildMetricsGrid(UploadModel? data) {
     final metrics = [
@@ -323,13 +517,23 @@ class _HomePageState extends State<HomePage>
       itemCount: metrics.length,
       itemBuilder: (context, index) {
         final metric = metrics[index];
-        return _buildMetricCard(
-          title: metric['title'] as String,
-          value: metric['value'] as String,
-          unit: metric['unit'] as String,
-          icon: metric['icon'] as IconData,
-          color: metric['color'] as Color,
-          status: metric['status'] as String,
+        final key = switch (index) {
+          0 => _pmKey,
+          1 => _humidityKey,
+          2 => _tempKey,
+          3 => _aqiKey,
+          _ => null,
+        };
+        return Container(
+          key: key,
+          child: _buildMetricCard(
+            title: metric['title'] as String,
+            value: metric['value'] as String,
+            unit: metric['unit'] as String,
+            icon: metric['icon'] as IconData,
+            color: metric['color'] as Color,
+            status: metric['status'] as String,
+          ),
         );
       },
     );
@@ -437,6 +641,7 @@ class _HomePageState extends State<HomePage>
 
   Widget _buildHistoricalSection() {
     return Container(
+      key: _historyKey,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(20),
@@ -482,7 +687,9 @@ class _HomePageState extends State<HomePage>
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const HistoryTab()),
+                        builder: (context) =>
+                            HistoryTab(selectedDevice: _selectedDevice),
+                      ),
                     );
                   },
                   icon: const Icon(Icons.arrow_forward, size: 16),
@@ -516,6 +723,7 @@ class _HomePageState extends State<HomePage>
           borderRadius: BorderRadius.circular(12),
         ),
         indicatorSize: TabBarIndicatorSize.tab,
+        // indicatorPadding: EdgeInsetsGeometry.symmetric(horizontal: ),
         labelColor: Theme.of(context).colorScheme.onPrimary,
         unselectedLabelColor:
             Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
@@ -694,6 +902,7 @@ class _HomePageState extends State<HomePage>
     }
 
     return Container(
+      key: _recommendationsKey,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -752,6 +961,331 @@ class _HomePageState extends State<HomePage>
     );
   }
 
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Sign Out'),
+        content: const Text('Are you sure you want to sign out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await _signOut(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Sign Out'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _signOut(BuildContext context) async {
+    try {
+      await FirebaseAuthMethod.auth.signOut();
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+        (route) => false,
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error signing out: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _showTutorial() {
+    int currentTutorialStep = 0;
+    final targets = _createTargets();
+    if (targets.isNotEmpty) {
+      _tutorialCoachMark = TutorialCoachMark(
+        targets: targets,
+        colorShadow: Colors.black,
+        textSkip: "SKIP",
+        paddingFocus: 10,
+        opacityShadow: 0.8,
+        hideSkip: false,
+        useSafeArea: true,
+        // onClickTarget: (target) {
+        //   _handleTutorialStep(target);
+        // },
+        onClickTargetWithTapPosition: (target, tapDetails) {
+          _handleTutorialStep(target);
+        },
+        onSkip: () {
+          return true;
+        },
+      );
+      _tutorialCoachMark?.show(context: context);
+    }
+  }
+
+  void _handleTutorialStep(TargetFocus target) {
+    // Check if this is the recommendations target and scroll
+
+    if (target.identify == "Recommendation Tab") {
+      // Add a small delay to let the tutorial UI update first
+      Future.delayed(const Duration(milliseconds: 100), () {
+        _scrollController.animateTo(1000.0,
+            duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
+      });
+    }
+    //   if (target.identify == "Recommendation Tab") {
+    //     // Add a small delay to let the tutorial UI update first
+    //     Future.delayed(const Duration(milliseconds: 100), () {
+    //       final keyContext = _recommendationsKey.currentContext;
+    //       if (keyContext != null) {
+    //         Scrollable.ensureVisible(
+    //           keyContext,
+    //           duration: const Duration(milliseconds: 500),
+    //           curve: Curves.easeInOut,
+    //           alignment: 0.3,
+    //         );
+    //       }
+    //     });
+    //   } else if (target.identify == "History") {
+    //     // Add a small delay to let the tutorial UI update first
+    //     Future.delayed(const Duration(milliseconds: 100), () {
+    //       final keyContext = _historyKey.currentContext;
+    //       if (keyContext != null) {
+    //         Scrollable.ensureVisible(
+    //           keyContext,
+    //           duration: const Duration(milliseconds: 500),
+    //           curve: Curves.easeInOut,
+    //           alignment: 0.3,
+    //         );
+    //       }
+    //     });
+    //   }
+  }
+
+// Replace your _createTargets method with this updated version:
+  List<TargetFocus> _createTargets() {
+    List<TargetFocus> targets = [];
+
+    // Only add targets if the keys are available and rendered
+    if (_deviceKey.currentContext != null) {
+      targets.add(
+        TargetFocus(
+          identify: "Devices",
+          keyTarget: _deviceKey,
+          contents: [
+            TargetContent(
+              align: ContentAlign.bottom,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  "Devices: shows the number of devices connected to the account",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_pmKey.currentContext != null) {
+      targets.add(
+        TargetFocus(
+          identify: "PM2.5",
+          keyTarget: _pmKey,
+          contents: [
+            TargetContent(
+              align: ContentAlign.bottom,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  "PM2.5: Fine particulate matter in the air (µg/m³). High values mean more pollution.",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_humidityKey.currentContext != null) {
+      targets.add(
+        TargetFocus(
+          identify: "Humidity",
+          keyTarget: _humidityKey,
+          contents: [
+            TargetContent(
+              align: ContentAlign.bottom,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  "Humidity: The amount of water vapor in the air (%).",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_tempKey.currentContext != null) {
+      targets.add(
+        TargetFocus(
+          identify: "Temperature",
+          keyTarget: _tempKey,
+          contents: [
+            TargetContent(
+              align: ContentAlign.top,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  "Temperature: The current air temperature (°C).",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_aqiKey.currentContext != null) {
+      targets.add(
+        TargetFocus(
+          identify: "AQI",
+          keyTarget: _aqiKey,
+          contents: [
+            TargetContent(
+              align: ContentAlign.top,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  "AQI: Air Quality Index. Summarizes air pollution level. Lower is better.",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_profileKey.currentContext != null) {
+      targets.add(
+        TargetFocus(
+          identify: "Profile",
+          keyTarget: _profileKey,
+          contents: [
+            TargetContent(
+              align: ContentAlign.bottom,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  "Profile: Shows profile information and settings.",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Remove the onTargetFocus from recommendations target
+    if (_recommendationsKey.currentContext != null) {
+      targets.add(
+        TargetFocus(
+          identify: "Recommendations Tab",
+          keyTarget: _recommendationsKey,
+          contents: [
+            TargetContent(
+              align: ContentAlign.top,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  "Recommendations Tab: Shows recommendations based on air quality.",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_historyKey.currentContext != null) {
+      targets.add(
+        TargetFocus(
+          identify: "History",
+          keyTarget: _historyKey,
+          contents: [
+            TargetContent(
+              align: ContentAlign.top,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  "History tab: shows all historical data collected",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return targets;
+  }
+
+// Also add this method to properly dispose of the tutorial
+// @override
+// void dispose() {
+
+//   super.dispose();
+// }
   // Helper methods for status and colors
   Color _getAQIColor(double value) {
     if (value <= 50) return Colors.green;

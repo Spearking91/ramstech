@@ -4,11 +4,13 @@ import 'package:intl/intl.dart';
 import 'package:ramstech/models/upload_model.dart';
 import 'package:ramstech/services/excel_export_service.dart';
 import 'package:ramstech/services/firebase_database_service.dart';
+import 'package:ramstech/services/firestore_services.dart';
 
 enum DisplayMetric { temperature, humidity, pms, aqi }
 
 class HistoryTab extends StatefulWidget {
-  const HistoryTab({super.key});
+  final DeviceModel? selectedDevice;
+  const HistoryTab({super.key, this.selectedDevice});
 
   @override
   _HistoryTabState createState() => _HistoryTabState();
@@ -23,6 +25,7 @@ class _HistoryTabState extends State<HistoryTab> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    _selectedDevice = widget.selectedDevice;
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -34,12 +37,6 @@ class _HistoryTabState extends State<HistoryTab> with TickerProviderStateMixin {
   }
 
   @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -48,7 +45,7 @@ class _HistoryTabState extends State<HistoryTab> with TickerProviderStateMixin {
       backgroundColor: isDark ? Colors.grey[900] : Colors.grey[50],
       body: CustomScrollView(
         slivers: [
-          // Custom App Bar
+          // Custom App Bar with device info
           SliverAppBar(
             expandedHeight: 120.0,
             floating: false,
@@ -56,13 +53,30 @@ class _HistoryTabState extends State<HistoryTab> with TickerProviderStateMixin {
             elevation: 0,
             backgroundColor: isDark ? Colors.grey[850] : Colors.white,
             flexibleSpace: FlexibleSpaceBar(
-              title: Text(
-                'Historical Data',
-                style: TextStyle(
-                  color: isDark ? Colors.white : Colors.grey[800],
-                  fontWeight: FontWeight.w600,
-                  fontSize: 22,
-                ),
+              title: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Historical Data',
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.grey[800],
+                      fontWeight: FontWeight.w600,
+                      fontSize: 22,
+                    ),
+                  ),
+                  // Show selected device info
+                  if (_selectedDevice != null)
+                    Text(
+                      _selectedDevice!.name?.isNotEmpty == true
+                          ? _selectedDevice!.name!
+                          : _selectedDevice!.macAddress,
+                      style: TextStyle(
+                        color: isDark ? Colors.grey[300] : Colors.grey[600],
+                        fontSize: 12,
+                      ),
+                    ),
+                ],
               ),
               background: Container(
                 decoration: BoxDecoration(
@@ -120,11 +134,17 @@ class _HistoryTabState extends State<HistoryTab> with TickerProviderStateMixin {
             child: FadeTransition(
               opacity: _fadeAnimation,
               child: StreamBuilder<List<UploadModel>>(
+                // FIX: Use selected device MAC address instead of defaultDeviceMac
                 stream: FirebaseDatabaseMethods.getHistoricalDataAsStream(
-                  FirebaseDatabaseMethods.defaultDeviceMac,
-                  limit: 20,
+                  _selectedDevice?.macAddress ?? '', // ← KEY CHANGE HERE
+                  limit: 24,
                 ),
                 builder: (context, snapshot) {
+                  // Add debug info
+                  print('Selected device: ${_selectedDevice?.macAddress}');
+                  print('Snapshot has data: ${snapshot.hasData}');
+                  print('Data length: ${snapshot.data?.length ?? 0}');
+
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return _buildLoadingWidget();
                   }
@@ -462,7 +482,7 @@ class _HistoryTabState extends State<HistoryTab> with TickerProviderStateMixin {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '${value ?? 'N/A'} $unit',
+                            '${value ?? '0'} $unit',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -589,6 +609,17 @@ class _HistoryTabState extends State<HistoryTab> with TickerProviderStateMixin {
   }
 
   Future<void> _exportData() async {
+    // Check if device is selected
+    if (_selectedDevice == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No device selected for export'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     final DateTimeRange? dateRange = await showDateRangePicker(
       context: context,
       firstDate: DateTime(2020),
@@ -621,8 +652,9 @@ class _HistoryTabState extends State<HistoryTab> with TickerProviderStateMixin {
       );
 
       try {
+        // FIX: Use selected device MAC address
         final data = await FirebaseDatabaseMethods.getHistoricalDataByDateRange(
-          FirebaseDatabaseMethods.defaultDeviceMac,
+          _selectedDevice!.macAddress, // ← KEY CHANGE HERE
           dateRange.start,
           dateRange.end,
         );
@@ -675,6 +707,12 @@ class _HistoryTabState extends State<HistoryTab> with TickerProviderStateMixin {
     }
   }
 
+  void updateSelectedDevice(DeviceModel? device) {
+    setState(() {
+      _selectedDevice = device;
+    });
+  }
+
   List<FlSpot> _getDataPoints(List<UploadModel> data) {
     return data.asMap().entries.map((entry) {
       final value = switch (_selectedMetric) {
@@ -701,7 +739,7 @@ class _HistoryTabState extends State<HistoryTab> with TickerProviderStateMixin {
           color: Colors.blue,
         ),
       DisplayMetric.pms => (
-          label: 'PMS',
+          label: 'PM',
           icon: Icons.air,
           color: Colors.green,
         ),

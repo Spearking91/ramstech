@@ -10,7 +10,7 @@ class FirebaseDatabaseMethods {
   // Constants
   static const String firebaseUrl =
       'https://ramstech-esp32-default-rtdb.firebaseio.com';
-  static const String defaultDeviceMac = '3C:8A:1F:A7:47:3C';
+  static String defaultDeviceMac = '';
 
   // Get data for specific device
   static Stream<UploadModel?> getDeviceDataAsStream(String deviceMac) {

@@ -17,14 +17,14 @@ class _OnboardingPageState extends State<OnboardingPage> {
     OnboardingData(
       title: 'Breathe Better, Live Better',
       description:
-          'Your air quality directly affects your health, productivity, and well-being',
+          'The quality of your air directly affects your health, productivity and wellbeing',
       image: 'assets/images/pexels-baskincreativeco-1766838.jpg',
     ),
     OnboardingData(
       title: 'Real-Time Air Intelligence',
       description:
           'Get real-time updates on air quality and environmental conditions',
-      image: 'assets/images/pexels-pixabay-33109.jpg',
+      image: 'assets/images/Air-Quality-Monitoring-Page.webp',
     ),
     OnboardingData(
       title: 'Your Clean Air Journey Starts Here',
@@ -124,7 +124,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                             }
                           },
                           style: IconButton.styleFrom(
-                            backgroundColor: Colors.amber,
+                            backgroundColor: Colors.white,
                             foregroundColor: Colors.blue,
                           ),
                           icon: const Icon(Icons.arrow_forward_sharp),
