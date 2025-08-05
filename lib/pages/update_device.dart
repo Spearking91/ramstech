@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:ramstech/pages/bluetooth.dart';
 import 'package:ramstech/pages/home_page.dart';
+<<<<<<< HEAD
 import 'package:ramstech/services/firestore_services.dart';
+=======
+import 'package:ramstech/services/firestoreServices.dart';
+>>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
 import 'package:ramstech/widgets/scan_page.dart';
 
 class UpdateDevice extends StatefulWidget {

@@ -23,7 +23,7 @@ class UploadModel {
     return UploadModel(
       temperature: _parseDouble(json['Temperature']),
       humidity: _parseDouble(json['Humidity']),
-      pms: _parseDouble(json['PMS_25']),
+      pms: _parseDouble(json['Waveshare_PMS_25']),
       aqi: _parseDouble(json['Waveshare_AQI']),
       category: json['Waveshare_AQI_Category']?.toString(),
       timestamp: json['timestamp']?.toString(),

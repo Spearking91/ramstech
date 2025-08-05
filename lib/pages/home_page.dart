@@ -4,12 +4,20 @@ import 'package:ramstech/auth/login_page.dart';
 import 'package:ramstech/models/upload_model.dart';
 import 'package:ramstech/pages/history_page.dart';
 import 'package:ramstech/pages/profile_page.dart';
+import 'package:ramstech/services/firebase_auth_service.dart';
 import 'package:ramstech/services/firebase_database_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+<<<<<<< HEAD
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import 'package:ramstech/pages/update_device.dart';
 import 'package:ramstech/services/firestore_services.dart'; // Add this import
+=======
+import 'package:ramstech/pages/update_device.dart';
+import 'package:ramstech/services/firestoreServices.dart'; // Add this import
+>>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
 import 'package:ramstech/widgets/avatar.dart';
+import 'package:ramstech/services/version_check_service.dart';
+import 'package:ramstech/pages/update_page.dart';
 
 enum ChartMetric { pms, humidity, temperature, aqi }
 
@@ -34,6 +42,7 @@ class _HomePageState extends State<HomePage>
 
   bool _updateAvailable = false;
   String? _latestVersion;
+<<<<<<< HEAD
 
   final GlobalKey _pmKey = GlobalKey();
   final GlobalKey _humidityKey = GlobalKey();
@@ -45,6 +54,8 @@ class _HomePageState extends State<HomePage>
   final GlobalKey _historyKey = GlobalKey();
   TutorialCoachMark? _tutorialCoachMark;
   final ScrollController _scrollController = ScrollController();
+=======
+>>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
 
   @override
   void initState() {
@@ -55,6 +66,44 @@ class _HomePageState extends State<HomePage>
         _selectedMetric = ChartMetric.values[_tabController.index];
       });
     });
+    _fetchUserDevices();
+    _checkForUpdate(); // <-- Add this
+  }
+
+  Future<void> _checkForUpdate() async {
+    try {
+      // Replace with your actual GitHub owner/repo
+      final latest = await VersionService.getLatestGitHubVersion(
+        owner: 'Altertech01', // <-- your GitHub username/org
+        repo: 'ramstech', // <-- your repo name
+      );
+      final current = await VersionService.getCurrentVersion();
+      if (latest != null && latest != current) {
+        setState(() {
+          _updateAvailable = true;
+          _latestVersion = latest;
+        });
+      }
+    } catch (_) {
+      // Ignore errors for now
+    }
+  }
+
+  Future<void> _fetchUserDevices() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    setState(() => _loadingDevices = true);
+    try {
+      final devices = await FirestoreService.getUserDevices(user.uid);
+      setState(() {
+        _userDevices = devices;
+        if (_userDevices.isNotEmpty) {
+          _selectedDevice ??= _userDevices.first;
+        }
+      });
+    } finally {
+      setState(() => _loadingDevices = false);
+    }
   }
 
   @override
@@ -68,28 +117,119 @@ class _HomePageState extends State<HomePage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      body: StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, authSnapshot) {
-          if (authSnapshot.connectionState == ConnectionState.waiting) {
-            // return _buildLoadingState();
-          }
+      body: Stack(
+        children: [
+          // Main content
+          _buildMainContent(context),
+          // Update banner
+          if (_updateAvailable)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: MaterialBanner(
+                backgroundColor: Colors.yellow[700],
+                content: Text(
+                  'A new update ($_latestVersion) is available!',
+                  style: const TextStyle(color: Colors.black),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const UpdatePage()),
+                      );
+                    },
+                    child: const Text('Update'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _updateAvailable = false;
+                      });
+                    },
+                    child: const Text('Dismiss'),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 
-          if (!authSnapshot.hasData) {
-            return _buildUnauthenticatedState();
-          }
+  Widget _buildMainContent(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, authSnapshot) {
+        if (authSnapshot.connectionState == ConnectionState.waiting) {
+          // return _buildLoadingState();
+        }
 
-          return StreamBuilder<UploadModel>(
-            stream: FirebaseDatabaseMethods.getDataAsStream()
-                .where((data) => data != null)
-                .cast<UploadModel>(),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                _lastData = snapshot.data;
-              }
+        if (!authSnapshot.hasData) {
+          return _buildUnauthenticatedState();
+        }
 
+<<<<<<< HEAD
             return CustomScrollView(
               controller: _scrollController, // <-- add this
+=======
+        // If still loading devices, show loading
+        if (_loadingDevices) {
+          return _buildLoadingState();
+        }
+
+        // If no devices, show a message
+        if (_userDevices.isEmpty) {
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(32),
+                child: Text(
+                  'No devices found. Please add a device to view data.',
+                  style: Theme.of(context).textTheme.titleMedium,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              FilledButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return UpdateDevice();
+                      },
+                    ),
+                  );
+                },
+                child: Text('Add device'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  _showLogoutDialog(context);
+                },
+                child: Text('Logout'),
+              ),
+            ],
+          );
+        }
+
+        // Use selected device's MAC address for data streams
+        final selectedMac = _selectedDevice?.macAddress ?? '';
+
+        return StreamBuilder<UploadModel>(
+          stream: FirebaseDatabaseMethods.getDeviceDataAsStream(selectedMac)
+              .where((data) => data != null)
+              .cast<UploadModel>(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              _lastData = snapshot.data;
+            }
+
+            return CustomScrollView(
+>>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
               slivers: [
                 SliverAppBar(
                   expandedHeight: 200,
@@ -137,8 +277,13 @@ class _HomePageState extends State<HomePage>
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                               colors: [
+<<<<<<< HEAD
                                 Colors.blue.shade200,
                                 Colors.blue.shade400,
+=======
+                                Theme.of(context).colorScheme.primary,
+                                Theme.of(context).colorScheme.primaryContainer,
+>>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
                               ],
                             ),
                           ),
@@ -159,7 +304,11 @@ class _HomePageState extends State<HomePage>
                               Align(
                                 alignment: Alignment.centerLeft,
                                 child: Padding(
+<<<<<<< HEAD
                                   padding: const EdgeInsets.only(left: 16),
+=======
+                                  padding: const EdgeInsets.only(left: 10),
+>>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     crossAxisAlignment:
@@ -197,6 +346,7 @@ class _HomePageState extends State<HomePage>
                     },
                   ),
                   actions: [
+<<<<<<< HEAD
                     IconButton(
                       icon: Icon(Icons.help_outline),
                       onPressed: () async {
@@ -217,6 +367,11 @@ class _HomePageState extends State<HomePage>
                       padding: const EdgeInsets.only(right: 16.0),
                       child: Avatar(
                         key: _profileKey,
+=======
+                    Padding(
+                      padding: const EdgeInsets.only(right: 16.0),
+                      child: Avatar(
+>>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
                         radius: 18,
                         onPressed: () {
                           Navigator.push(
@@ -344,14 +499,18 @@ class _HomePageState extends State<HomePage>
               separatorBuilder: (_, __) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
                 final device = _userDevices[index];
+<<<<<<< HEAD
                 final isOnline = device.lastSeen != null &&
                     DateTime.now().difference(device.lastSeen!).inMinutes < 4;
+=======
+>>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
                 final isSelected =
                     device.macAddress == _selectedDevice?.macAddress;
                 return GestureDetector(
                   onTap: () {
                     setState(() {
                       _selectedDevice = device;
+<<<<<<< HEAD
                       // Update the defaultDeviceMac when device is selected
                       FirebaseDatabaseMethods.defaultDeviceMac =
                           device.macAddress;
@@ -359,6 +518,11 @@ class _HomePageState extends State<HomePage>
                   },
                   child: Container(
                     key: _deviceKey,
+=======
+                    });
+                  },
+                  child: Container(
+>>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
                     decoration: BoxDecoration(
                       color: isSelected
                           ? Theme.of(context).colorScheme.primary
@@ -372,11 +536,19 @@ class _HomePageState extends State<HomePage>
                           : null,
                     ),
                     child: _buildQuickDeviceAccess(
+<<<<<<< HEAD
                         device.name?.isNotEmpty == true
                             ? device.name!
                             : '${device.macAddress.substring(0, 7)}...........',
                         Icons.devices,
                         isOnline),
+=======
+                      device.name?.isNotEmpty == true
+                          ? device.name!
+                          : device.macAddress.substring(0, 7) + '...........',
+                      Icons.devices,
+                    ),
+>>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
                   ),
                 );
               },
@@ -394,7 +566,11 @@ class _HomePageState extends State<HomePage>
     );
   }
 
+<<<<<<< HEAD
   Widget _buildQuickDeviceAccess(String label, IconData icon, bool isOnline) {
+=======
+  Widget _buildQuickDeviceAccess(String label, IconData icon) {
+>>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
     return Container(
         padding: EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -409,6 +585,7 @@ class _HomePageState extends State<HomePage>
               label,
               style: TextStyle(color: Colors.white, fontSize: 12),
             ),
+<<<<<<< HEAD
             SizedBox(width: 4),
             Container(
               width: 10,
@@ -418,6 +595,8 @@ class _HomePageState extends State<HomePage>
                 color: isOnline ? Colors.lightGreen : Colors.amber,
               ),
             )
+=======
+>>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
           ],
         ));
   }
@@ -703,7 +882,7 @@ class _HomePageState extends State<HomePage>
             const SizedBox(height: 20),
             _buildMetricTabs(),
             const SizedBox(height: 16),
-            _buildChart(),
+            _buildChart(), // This will use the selected device
           ],
         ),
       ),
@@ -739,11 +918,12 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _buildChart() {
+    final selectedMac = _selectedDevice?.macAddress ?? '';
     return SizedBox(
       height: 200,
       child: StreamBuilder<List<UploadModel>>(
         stream: FirebaseDatabaseMethods.getHistoricalDataAsStream(
-          FirebaseDatabaseMethods.defaultDeviceMac,
+          selectedMac,
           limit: 24,
         ),
         builder: (context, snapshot) {
@@ -1006,6 +1186,7 @@ class _HomePageState extends State<HomePage>
     }
   }
 
+<<<<<<< HEAD
   void _showTutorial() {
     int currentTutorialStep = 0;
     final targets = _createTargets();
@@ -1286,6 +1467,8 @@ class _HomePageState extends State<HomePage>
 
 //   super.dispose();
 // }
+=======
+>>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
   // Helper methods for status and colors
   Color _getAQIColor(double value) {
     if (value <= 50) return Colors.green;

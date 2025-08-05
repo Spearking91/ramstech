@@ -4,7 +4,11 @@ import 'package:intl/intl.dart';
 import 'package:ramstech/models/upload_model.dart';
 import 'package:ramstech/services/excel_export_service.dart';
 import 'package:ramstech/services/firebase_database_service.dart';
+<<<<<<< HEAD
 import 'package:ramstech/services/firestore_services.dart';
+=======
+import 'package:ramstech/services/firestoreServices.dart';
+>>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
 
 enum DisplayMetric { temperature, humidity, pms, aqi }
 
@@ -21,6 +25,7 @@ class _HistoryTabState extends State<HistoryTab> with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   bool _showChart = true;
+  DeviceModel? _selectedDevice;
 
   @override
   void initState() {
@@ -136,7 +141,11 @@ class _HistoryTabState extends State<HistoryTab> with TickerProviderStateMixin {
               child: StreamBuilder<List<UploadModel>>(
                 // FIX: Use selected device MAC address instead of defaultDeviceMac
                 stream: FirebaseDatabaseMethods.getHistoricalDataAsStream(
+<<<<<<< HEAD
                   _selectedDevice?.macAddress ?? '', // ← KEY CHANGE HERE
+=======
+                  _selectedDevice?.macAddress ?? '',
+>>>>>>> 228cf7fec8be3486feb1c49e2f85fc203b4e7179
                   limit: 24,
                 ),
                 builder: (context, snapshot) {
