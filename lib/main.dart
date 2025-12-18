@@ -41,9 +41,6 @@ class MyApp extends StatelessWidget {
               seedColor: Colors.blue,
               brightness: Brightness.dark,
             ),
-            appBarTheme: const AppBarTheme(
-              color: Colors.blue,
-            ),
           ),
           home: SplashScreen(),
         );
