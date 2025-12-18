@@ -878,18 +878,18 @@ class _SignUpPageState extends State<SignUpPage>
       final deviceId = _DeviceIdController.text.trim();
       final deviceName = _DeviceNameController.text.trim();
 
-      // Check if device already exists and is assigned to another user
-      final isAssigned = await FirestoreService.isDeviceAssigned(deviceId);
-      if (isAssigned) {
-        throw Exception('This device is already assigned to another user');
-      }
+      // // Check if device already exists and is assigned to another user
+      // final isAssigned = await FirestoreService.isDeviceAssigned(deviceId);
+      // if (isAssigned) {
+      //   throw Exception('This device is already assigned to another user');
+      // }
 
       // Add device to user
-      await FirestoreService.addDeviceToUser(
-        userId: userId,
-        deviceId: deviceId,
-        deviceName: deviceName,
-      );
+      // await FirestoreService.addDeviceToUser(
+      //   userId: userId,
+      //   deviceId: deviceId,
+      //   deviceName: deviceName,
+      // );
 
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(

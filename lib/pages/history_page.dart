@@ -22,6 +22,7 @@ class _HistoryTabState extends State<HistoryTab> with TickerProviderStateMixin {
   late Animation<double> _fadeAnimation;
   bool _showChart = true;
   DeviceModel? _selectedDevice;
+  UserModel? _selectedUser;
 
   @override
   void initState() {
@@ -69,8 +70,8 @@ class _HistoryTabState extends State<HistoryTab> with TickerProviderStateMixin {
                   // Show selected device info
                   if (_selectedDevice != null)
                     Text(
-                      _selectedDevice!.name?.isNotEmpty == true
-                          ? _selectedDevice!.name!
+                      (_selectedUser ?.getDeviceName( _selectedDevice?.macAddress ?? '') ?.isNotEmpty == true)
+                          ? _selectedUser!.getDeviceName(_selectedDevice!.macAddress)!
                           : _selectedDevice!.macAddress,
                       style: TextStyle(
                         color: isDark ? Colors.grey[300] : Colors.grey[600],

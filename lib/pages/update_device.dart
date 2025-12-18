@@ -464,21 +464,25 @@ class _UpdateDeviceState extends State<UpdateDevice>
         throw Exception('User not authenticated');
       }
 
-      final deviceId = _deviceIdController.text.trim();
+      final macAddress = _deviceIdController.text.trim();
+      final deviceId = _deviceIdController.text
+          .trim(); // deviceId is same as macAddress here
       final deviceName = _deviceNameController.text.trim();
 
-      // Check if device already exists and is assigned to another user
-      final isAssigned = await FirestoreService.isDeviceAssigned(deviceId);
+      // Check if device already exists and is assigned to this user
+      final isAssigned =
+          await FirestoreService.isDeviceAssignedToUser(macAddress, userId);
       if (isAssigned) {
-        throw Exception('This device is already assigned to another user');
+        throw Exception('This device is already assigned to you');
       }
 
       // Add device to user (this updates both devices and user's devices array)
-      await FirestoreService.addDeviceToUser(
-        userId: userId,
-        deviceId: deviceId,
-        deviceName: deviceName,
-      );
+      // await FirestoreService.addDeviceToUser(
+      //   userId: userId,
+      //   macAddress: macAddress,
+      //   deviceId: deviceId,
+      //   customDeviceName: deviceName,
+      // );
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

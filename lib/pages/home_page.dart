@@ -33,6 +33,7 @@ class _HomePageState extends State<HomePage>
   // Add these for device selection
   List<DeviceModel> _userDevices = [];
   DeviceModel? _selectedDevice;
+  UserModel? _selectedUser;
   bool _loadingDevices = true;
 
   bool _updateAvailable = false;
@@ -243,8 +244,8 @@ class _HomePageState extends State<HomePage>
                       return FlexibleSpaceBar(
                         title: t < 0.5 // Collapsed (show device name or MAC)
                             ? Text(
-                                _selectedDevice?.name?.isNotEmpty == true
-                                    ? '${_selectedDevice!.name}'
+                                _selectedUser?.deviceName?.isNotEmpty == true
+                                    ? '${_selectedUser!.deviceName}'
                                     : _selectedDevice?.macAddress ?? '',
                                 style: TextStyle(
                                   color:
@@ -503,12 +504,12 @@ class _HomePageState extends State<HomePage>
                             )
                           : null,
                     ),
-                    child: _buildQuickDeviceAccess(
-                        device.name?.isNotEmpty == true
-                            ? device.name!
-                            : '${device.macAddress.substring(0, 7)}...........',
-                        Icons.devices,
-                        isOnline),
+                    // child: _buildQuickDeviceAccess(
+                    //       _selectedUser.deviceName?.isNotEmpty == true
+                    //         ? _selectedUser.deviceName!
+                    //         : '${device.macAddress.substring(0, 7)}...........',
+                    //     Icons.devices,
+                    //     isOnline),
                   ),
                 );
               },
